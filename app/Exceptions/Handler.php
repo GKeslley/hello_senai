@@ -29,9 +29,7 @@ class Handler extends ExceptionHandler
             //
         });
 
-        $this->renderable(function(NotFoundHttpException $exception) {
-            return response()->json(['message' => 'Usuario não encontrado', 'code' => 404], 404);
-        });
+     
     }
 
 }
