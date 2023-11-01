@@ -12,7 +12,6 @@ use App\Models\Invitation;
 class Challenge extends Invitation
 {
     use HasApiTokens, HasFactory, Notifiable;
-
     protected $primaryKey = "idconvite";
 
     public function createChallenge($data, $teacherId)
@@ -21,16 +20,27 @@ class Challenge extends Invitation
         $dataChallenge = [
             'idprofessor' => $teacherId,
             'idconvite' => $idInvite,
-            'imagem' => $data['imagem'] ?: null
+            'imagem' => !empty($data['imagem']) ? $data['imagem'] : null
         ];
         if (DB::table('desafio')->insert($dataChallenge)) return true;
         return false;
     }
 
-    public function updateChallenge($idprofessor, $idconvite, $data) {
-        DB::table('desafio as d')
-        ->join('convite as c','d.idconvite','=','c.idconvite')
-        ->where('idprofessor','=',$idprofessor,'and','idconvite', '=', $idconvite)
-        ->update($data);
+    public function updateChallenge($data) {
+        if (parent::updateInvitation($data)) return true;
+        return false;
+    }
+
+    public function deleteChallenge($inviteId)
+    {
+        if (DB::table('desafio')->where('idconvite', '=', $inviteId)->delete())
+        {
+            if (parent::deleteInvitation($inviteId))
+            {
+                return true;
+            }
+            return false;
+        };
+        return false;
     }
 }

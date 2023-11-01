@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\V1\InvitationResource;
 use Auth;
 use App\Models\Challenge;
 use App\Http\Requests\StoreChallengeRequest;
@@ -22,15 +23,8 @@ class ChallengeController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $invitations = $this->repository->with('user')->paginate();
+        return InvitationResource::collection($invitations);
     }
 
     /**
@@ -60,32 +54,66 @@ class ChallengeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Challenge $challenge)
+    public function show($slug)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Challenge $challenge)
-    {
-        //
+        $data = $this->service->getBySlug($slug);
+        if (!$data)
+        {
+            return response()->json(['message' => 'Desafio Não Encontrado'], 404);
+        }
+        return new InvitationResource($data);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateChallengeRequest $request, Challenge $challenge)
+    public function update(UpdateChallengeRequest $request, $slug)
     {
-        //
+        $invitation = $this->service->getBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        
+        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('challenge-update') && $user->apelido == $invitation->user->apelido)
+        {
+            $data = $request->validated();
+            $data['idconvite'] = $invitation->idconvite;
+
+            if ($data['titulo'] != $invitation->titulo)
+            {
+                $data['slug'] = $this->service->generateSlug($data['titulo']);
+            }
+
+            if (!$this->repository->updateChallenge($data))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Desafio Atualizado'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Challenge $challenge)
+    public function destroy($slug)
     {
-        //
+        $invitation = $this->service->getBySlug($slug);
+        
+        if (!$invitation)
+        {
+            return response()->json(['message' => 'Desafio Não Encontrado'], 404);
+        }
+        
+        $user = Auth::guard('sanctum')->user();
+        
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('challenge-destroy') && $user->apelido == $invitation->user->apelido)
+        {
+            if (!$this->repository->deleteChallenge($invitation->idconvite))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Convite Excluido'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 }
