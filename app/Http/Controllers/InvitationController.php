@@ -58,7 +58,7 @@ class InvitationController extends Controller
      */
     public function update(UpdateInvitationRequest $request, $slug)
     {
-        $invitation = $this->service->getInvitationBySlug($slug);
+        $invitation = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
         //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
@@ -86,7 +86,7 @@ class InvitationController extends Controller
      */
     public function destroy($slug)
     {
-        $invitation = $this->service->getInvitationBySlug($slug);
+        $invitation = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
         if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)

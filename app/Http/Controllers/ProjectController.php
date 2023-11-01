@@ -59,7 +59,7 @@ class ProjectController extends Controller
      */
     public function show($slug)
     {
-        $data = $this->service->getProjectBySlug($slug);
+        $data = $this->service->getBySlug($slug);
         if (!$data)
         {
             return response()->json(['message' => 'Projeto Não Encontrado'], 404);
@@ -72,7 +72,7 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, $slug)
     {
-        $project = $this->service->getProjectBySlug($slug);
+        $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
         //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
@@ -100,7 +100,7 @@ class ProjectController extends Controller
      */
     public function destroy($slug)
     {
-        $project = $this->service->getProjectBySlug($slug);
+        $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
         if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
