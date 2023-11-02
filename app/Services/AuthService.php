@@ -14,10 +14,11 @@ class AuthService
         return false;
   }
 
-    public function isOwnerOfProject(int $userId)
+    public function isRedator(int $userId)
     {
-        $userRule = DB::table('acesso')->where('idusuario', $userId)->value('acesso');
-        if ($userRule && $userRule == 'owner') return true;
+        $userRule = DB::table('acesso')->where('idusuario', $userId)->value('permissao');
+        $ruleValue = DB::table('permissao')->where('idpermissao', $userRule)->value('tipo');
+        if ($ruleValue == 'editor') return true;
         return false;
     }
 

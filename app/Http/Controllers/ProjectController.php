@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuthService;
 use Auth;
 use App\Models\Project;
 use App\Services\ProjectService;
@@ -13,12 +14,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ProjectController extends Controller
 {
     private $service;
+    private $authService;
 
     public function __construct(
         protected Project $repository
     )
     {
         $this->service = new ProjectService();
+        $this->authService = new AuthService();
     }
 
     /**
@@ -74,9 +77,10 @@ class ProjectController extends Controller
     {
         $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
-        
+
         //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') 
+        && ($user->apelido == $project->user->apelido || $this->authService->isRedator($user->idusuario)))
         {
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
