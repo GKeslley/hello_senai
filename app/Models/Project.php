@@ -41,7 +41,7 @@ class Project extends Model
      * @return int $idprojeto
      */
     public function createProject($data) { 
-        if ($this->insert($data)) return true;
+        if ($id = $this->insertGetId($data)) return $id;
         return false;
     }
 
@@ -61,6 +61,31 @@ class Project extends Model
         {
             return true;
         };
+        return false;
+    }
+
+    public function getProjectBySlug($slug)
+    {
+        if ($projectId = $this->where('slug', '=', $slug)->value('idprojeto'))
+        {
+            return $projectId;
+        };
+        return null;
+    }
+
+    public function getUserPermissionInProject($permission)
+    {
+        if ($permissionId = DB::table('permissao')
+        ->where('tipo', '=', $permission)->value('idpermissao'))
+        {
+            return $permissionId;
+        };
+        return null;
+    }
+
+    public function addRangeParticipants($participants)
+    {
+        if (DB::table('acesso')->insert($participants)) return true;
         return false;
     }
 }

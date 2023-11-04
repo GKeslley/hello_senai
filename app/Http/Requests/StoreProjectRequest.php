@@ -25,7 +25,7 @@ class StoreProjectRequest extends FormRequest
             'nome_projeto' => 'required|min:3|max:80',
             'descricao' => 'required',
             'status' => 'required',
-            'participantes'
+            'participantes' => 'nullable'
         ];
     }
 }

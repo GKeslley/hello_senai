@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AuthService;
 use Auth;
 use App\Models\Project;
+use App\Models\User;
 use App\Services\ProjectService;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
@@ -15,6 +16,7 @@ class ProjectController extends Controller
 {
     private $service;
     private $authService;
+    private $users;
 
     public function __construct(
         protected Project $repository
@@ -22,6 +24,7 @@ class ProjectController extends Controller
     {
         $this->service = new ProjectService();
         $this->authService = new AuthService();
+        $this->users = new User();
     }
 
     /**
@@ -42,17 +45,32 @@ class ProjectController extends Controller
         if (Auth::guard('sanctum')->check() && $user->tokenCan('project-store'))
         {
             $data = $request->validated();
+            $dataClone = $data;
+            unset($data['participantes']);
+
             $userId = $user->idusuario;
             $slug = $this->service->generateSlug($data['nome_projeto']);
-
+            
             $data['idusuario'] = $userId;
             $data['slug'] = $slug;
             
-            if (!$this->repository->createProject($data))
+            if ($projectId = $this->repository->createProject($data))
             {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
-            return response()->json(['message' => 'Projeto Criado'], 200);
+                $participants = $dataClone['participantes'];
+                if ($participants)
+                {
+                    try {
+                        $dataParticipants = $this->addParticipants($participants, $projectId);
+                        $this->repository->addRangeParticipants($dataParticipants);
+                    } catch (\Exception $message) {
+                        return response()->json(['message' => $message->getMessage()], 404);
+                    }
+                }
+    
+                return response()->json(['message' => 'Projeto Criado'], 200);
+            };    
+
+            return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
     }
@@ -88,12 +106,13 @@ class ProjectController extends Controller
             if ($data['nome_projeto'] != $project->nome_projeto)
             {
                 $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
-            }
+            };
 
             if (!$this->repository->updateProject($data))
             {
                 return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+            }; 
+
             return response()->json(['message' => 'Projeto Atualizado'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
@@ -116,5 +135,25 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Projeto Excluido'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    public function addParticipants($participants, $projectId)
+    {
+        foreach ($participants as $key => $value) {
+            $nickname = $this->users->getByNickname($value['apelido']);
+            if (!$nickname) 
+            {
+                throw new \Exception("Usúario Não Encontrado", 404);        
+            };
+            $permission = $this->repository->getUserPermissionInProject($value['permissao']);
+
+            $iduser = $nickname[0]['idusuario'];
+            $data[] = [
+                'idusuario' => $iduser,
+                'idprojeto' => $projectId,
+                'permissao' => $permission
+            ];
+        }
+        return $data;
     }
 }
