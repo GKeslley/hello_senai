@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\Invitation;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class User extends Authenticatable
 {
@@ -46,6 +47,14 @@ class User extends Authenticatable
         $id = $this->insertGetId($data);
         $this->generateUsername($data['nome'], $id);
         return $id;
+    }
+
+    public function createAdm($data) {
+        $idUser = $this->createUser($data);
+        if (!DB::table('adm')->insert(['idusuario' => $idUser]))
+        {
+            throw new HttpException(401, 'Erro na ação');
+        };
     }
     
     /**

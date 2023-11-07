@@ -35,8 +35,24 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['senha'] = bcrypt($request->senha);
-        
         $this->repository->createUser($data);
+    }
+
+    public function storeAdm(StoreUserRequest $request)
+    {
+        if (Auth::guard('sanctum')->check() 
+        && Auth::guard('sanctum')->user()->tokenCan('adm-store'))
+        {
+            $data = $request->validated();
+            $data['senha'] = bcrypt($request->senha);
+            try {
+                $this->repository->createAdm($data);
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], $e->getCode());
+            }
+            return response()->json(['message' => 'Adm Registrado'], 200);
+        };
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**

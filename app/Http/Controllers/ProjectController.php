@@ -10,6 +10,7 @@ use App\Services\ProjectService;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\V1\ProjectResource;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ProjectController extends Controller
@@ -63,7 +64,7 @@ class ProjectController extends Controller
                         $dataParticipants = $this->addParticipants($participants, $projectId);
                         $this->repository->addRangeParticipants($dataParticipants);
                     } catch (\Exception $message) {
-                        return response()->json(['message' => $message->getMessage()], 404);
+                        return response()->json(['message' => $message->getMessage()], $message->getCode());
                     }
                 }
     
@@ -143,7 +144,7 @@ class ProjectController extends Controller
             $nickname = $this->users->getByNickname($value['apelido']);
             if (!$nickname) 
             {
-                throw new \Exception("Usúario Não Encontrado", 404);        
+                throw new HttpException(404, "Usúario Não Encontrado");                  
             };
             $permission = $this->repository->getUserPermissionInProject($value['permissao']);
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -21,9 +22,19 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = Auth::guard('sanctum')->user()->tokenCan('adm-store');
+        $emailRules = [
+            'required',
+            'email',
+            'unique:usuario',
+            'max:255'
+        ];
+        
+        if (!$user) $emailRules[] = 'regex:/ba.estudante.senai\.br/';
+
         return [
            'nome' => 'required|min:5|max:45',
-           'email' => 'required|email|unique:usuario|max:255|regex:/ba.estudante.senai\.br/',
+           'email' => $emailRules,
            'senha' => 'required|min:6|max:255'
         ];
     }
