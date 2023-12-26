@@ -65,11 +65,11 @@ Aqui estão alguns exemplos de como você pode testar a API:
 
 ### Usuário - Crie uma nova conta, busque outros usuários ou atualize suas informações
 
-- **POST /usuario**: Registro / Login de um usuário
-- **PUT /usuario**: Atualizar informações do usuário logado
-- **PUT /usuario/senha/modificar**: Modifique sua senha
-- **PUT /usuario/conta/desativar**: Desative sua conta
-- **PUT /avatar**: Atualize seu avatar
+- **POST /usuario**: Registro de um usuário
+- **PUT /usuario/{nickname}**: Atualizar informações do usuário logado
+- **PUT /usuario/senha/modificar**: Modificar sua senha
+- **PUT /usuario/conta/desativar**: Desativar sua conta
+- **PUT /avatar**: Atualizar seu avatar
 - **GET /usuario/{nickname}**: Listar informações de outro usuário a partir do apelido
 
 ### Projetos - Crie um novo projeto, exiba as informações de um projeto, atualize seus dados ou desative o projeto
