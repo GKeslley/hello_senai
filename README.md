@@ -2,7 +2,7 @@
 
 ## Introdução
 
-Esta API foi desenvolvida usando Laravel com o intuito de desenvolver um sistema para alunos do curso técnico de Desenvolvimento de Sistemas do Senai
+Esta API foi desenvolvida usando Laravel com o intuito de desenvolver um sistema para alunos do curso técnico de Desenvolvimento de Sistemas do Senai,
 chamado <strong><a href="https://github.com/GKeslley/hellosenai_front">Hello Senai</a></strong>.
 
 ## Recursos
